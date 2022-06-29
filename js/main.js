@@ -154,23 +154,35 @@ function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     });
 }
 
+
 async function detectPoseInRealTime(canvas, context, video, net) {
-    console.log('detecting pose')
 
-    pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
-    console.log(pose)
-    console.log(pose.keypoints)
-    console.log(pose.minPartConfidence)
+    async function poseDetectionFrame() {
+        console.log('detecting pose')
+    
+        pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
+        console.log(pose)
+        console.log(pose.keypoints)
+        console.log(pose.minPartConfidence)
+    
+        context.clearRect(0, 0, videoWidth, videoHeight);
+    
+        context.save();
+        context.scale(-1, 1);
+        context.translate(-videoWidth, 0);
+        context.drawImage(video, 0, 0, videoWidth, videoHeight);
+        context.restore();
+    
+        // Draw keypoints on canvas
+        drawKeypoints(pose.keypoints, pose.minPartConfidence, context);
+    
+        // draw skeleton on canvas
+        drawSkeleton(pose.keypoints, pose.minPartConfidence, context);
+    
+        requestAnimationFrame(poseDetectionFrame);
+    }
 
-
-    // Draw video on canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Draw keypoints on canvas
-    drawKeypoints(pose.keypoints, pose.minPartConfidence, context);
-
-    // draw skeleton on canvas
-    drawSkeleton(pose.keypoints, pose.minPartConfidence, context)
+    poseDetectionFrame();
 
     // // Make sure the function runs for the latest video image
     // setTimeout(detectPoseInRealTime, 1/frameRate, video, canvas, context, frameRate);
