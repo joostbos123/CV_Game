@@ -6,6 +6,7 @@
         Computer Vision Game
     </title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/styles.css">
     <!-- Load TensorFlow.js -->
     <script src="https://unpkg.com/@tensorflow/tfjs"></script>
     <!-- Load Posenet -->
@@ -13,10 +14,12 @@
 </head>
 
 <body>
-    <div id="info" style='display:none'>
+    <div id="navbar">
+        <a href="/">
+            <img src="./media/deloitte-logo.gif">
+        </a>
     </div>
-    <div id="loading">
-        Loading the model...
+    <div id="info" style='display:none'>
     </div>
     <div id="main">
         <video id="video" playsinline style=" -moz-transform: scaleX(-1);
@@ -26,8 +29,45 @@
         display: none;
         ">
         </video>
+
         <div id="game">
-            <canvas id="output" />
+            <canvas id="output"></canvas>
+        </div>
+        
+        <div id="description">
+            <div class="description-box">
+                <div class="description-logo">
+                    <img src="./media/privacy-icon.png"></img>
+                </div>
+                <div class="description-title">
+                    <h3>Privacy</h3>
+                </div>
+                <div class="description-text">
+                    <p>Data stays local and will not leave the client device</p>
+                </div>
+            </div>
+            <div class="description-box">
+                <div class="description-logo">
+                    <img src="./media/multi-device-icon.png"></img>
+                </div>
+                <div class="description-title">
+                    <h3>Multi device</h3>
+                </div>
+                <div class="description-text">
+                    <p>Runs in browsers on desktop, tablet, mobile etc. No installation of any additional application is required by the user.</p>
+                </div>
+            </div>
+            <div class="description-box">
+                <div class="description-logo">
+                    <img src="./media/distributed-computing-icon.png"></img>
+                </div>
+                <div class="description-title">
+                    <h3>Distributed computing</h3>
+                </div>
+                <div class="description-text">
+                    <p>Client side data from many users can be used to train models in real-time to improve the global Computer Vision model</p>
+                </div>
+            </div>
         </div>
     </div>
     

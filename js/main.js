@@ -1,7 +1,7 @@
-// const videoWidth = 600;
-// const videoHeight = 500;
-const videoWidth = window.screen.width;
-const videoHeight = window.screen.height;
+const videoWidth = 800;
+const videoHeight = 600;
+// const videoWidth = window.screen.width;
+// const videoHeight = window.screen.height;
 const imageScaleFactor = 0.5;
 const flipHorizontal = true; // since images are being fed from a webcam
 const outputStride = 16;
@@ -27,7 +27,6 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
         context.restore();
 
         context.drawImage(image, 400, 200, 100, 100);
-        console.log(image)
     
         // Draw keypoints on canvas
         drawKeypoints(pose.keypoints, minPartConfidence, context);
@@ -45,7 +44,15 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
 
 }
 
+
+
 async function startGame(canvas, context) {
+    console.log('start game')
+
+    // Play music sound
+    //var audio = new Audio('./media/James Hype - Ferrari (Instrumental).mp3');
+    //audio.play();
+
     // Start video from webcam
     let video;
 
@@ -63,12 +70,13 @@ async function startGame(canvas, context) {
         inputResolution: { width: videoWidth, height: videoHeight },
         scale: imageScaleFactor,
         })
+    console.log('model loaded')
 
     // Clear the canvas
     context.clearRect(0, 0, videoWidth, videoHeight);
 
-    // Load image of the game
-    const image = await loadImage('./media/deloitte_logo.jpeg')
+    // image of the game
+    const image = await loadImage('./media/deloitte-target.jpeg')
 
     detectPoseInRealTime(canvas, context, video, net, image)
 
@@ -88,13 +96,12 @@ async function startScreen(){
     context.drawImage(image, 0, 0, videoWidth, videoHeight);
     context.font = "40pt Calibri";
     context.fillStyle = "#00ff00";
-    context.fillText("Start Game!", 150, 120);
+    context.fillText("Start Game!", 120, 120);
 
     // Remove loading block and show game
-    document.getElementById('loading').style.display = 'none';
     document.getElementById('main').style.display = 'block';
 
     canvas.addEventListener('click', function() {
         startGame(canvas, context)
-    }, false);
+    })
 }
