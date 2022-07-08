@@ -1,18 +1,29 @@
 const videoWidth = 800;
 const videoHeight = 600;
-// const videoWidth = window.screen.width;
-// const videoHeight = window.screen.height;
 const imageScaleFactor = 0.5;
 const flipHorizontal = true; // since images are being fed from a webcam
 const outputStride = 16;
 const minPartConfidence = 0.5;
 const minPoseConfidence = 0.1;
+const radiusTarget = 50
+const radiusForeheadCircle = 16
+
+var xTargetCenter = Math.random() * videoWidth;
+var yTargetCenter = Math.random() * videoHeight;
+
+var score = 0
+var timeStart
+
+// const videoWidth = window.screen.width;
+// const videoHeight = window.screen.height;
 
 window.onload = function() {
     startScreen()
 }
 
 async function detectPoseInRealTime(canvas, context, video, net, image) {
+
+    timeStart = Date.now();
 
     async function poseDetectionFrame() {
     
@@ -26,18 +37,53 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
         context.drawImage(video, 0, 0, videoWidth, videoHeight);
         context.restore();
 
-        context.drawImage(image, 400, 200, 100, 100);
-    
-        // Draw keypoints on canvas
-        drawKeypoints(pose.keypoints, minPartConfidence, context);
+        let xTargetCorner = xTargetCenter - radiusTarget;
+        let yTargetCorner = yTargetCenter - radiusTarget;
+
+        context.drawImage(image, xTargetCorner, yTargetCorner, radiusTarget*2, radiusTarget*2);
 
         // Draw forehead keypoint on canvas
-        drawForeheadKeypoint(pose.keypoints, minPartConfidence, context)
+        foreheadCoordinates = drawForeheadKeypoint(pose.keypoints, minPartConfidence, context, radiusForeheadCircle)
+
+        // Draw score on canvas
+        context.font = "20pt Calibri";
+        context.fillStyle = "#00ff00";
+        context.fillText("Score: " + score, 15, 30);
+
+        // // Draw keypoints on canvas
+        // drawKeypoints(pose.keypoints, minPartConfidence, context);
     
         // draw skeleton on canvas
         //drawSkeleton(pose.keypoints, minPoseConfidence, context);
-    
-        requestAnimationFrame(poseDetectionFrame);
+
+        // Check if the target is hit
+        if (foreheadCoordinates !== undefined) {
+
+            let distCenters = Math.sqrt((xTargetCenter - foreheadCoordinates.x)**2 + (yTargetCenter - foreheadCoordinates.y)**2);
+
+            if (distCenters < (radiusTarget + radiusForeheadCircle)) {
+                console.log('hit!')
+                // Update score
+                score = score + 1
+
+                // if (score === 1) {
+                //     cancelAnimationFrame(reqId);
+                //     console.log('test')
+                //     stopGame(canvas, context, video);
+                // }
+
+                // Generate new target coordinates
+                xTargetCenter = Math.random() * videoWidth;
+                yTargetCenter = Math.random() * videoHeight;
+            }
+        }
+
+        let reqId = requestAnimationFrame(poseDetectionFrame);
+
+        if (score === 1) {
+            cancelAnimationFrame(reqId);
+            stopGame(canvas, context, video);
+        }
     }
 
     poseDetectionFrame();
@@ -76,10 +122,31 @@ async function startGame(canvas, context) {
     context.clearRect(0, 0, videoWidth, videoHeight);
 
     // image of the game
-    const image = await loadImage('./media/deloitte-target.jpeg')
+    const image = await loadImage('./media/football.png')
 
     detectPoseInRealTime(canvas, context, video, net, image)
 
+}
+
+async function stopGame(canvas, context) {
+    // Stop video camera stream
+    video.srcObject.getTracks().forEach(function(track) {
+        track.stop();
+      });
+
+    let timeGame = Math.floor((Date.now() - timeStart) / 1000);
+
+    // clear canvas
+    context.clearRect(0, 0, videoWidth, videoHeight);
+
+    // Add starting image and text to canvas
+    const image = await loadImage('./media/deloitte.jpeg')
+
+    context.drawImage(image, 0, 0, videoWidth, videoHeight);
+    context.font = "30pt Calibri";
+    context.fillStyle = "#00ff00";
+    context.fillText("Congrats you made it till the end!", 50, 50);
+    context.fillText("Your time is " + timeGame + " seconds", 50, 100);
 }
 
 async function startScreen(){

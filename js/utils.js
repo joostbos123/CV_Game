@@ -49,10 +49,12 @@ async function loadVideo() {
 /**
  * Draw forehead keypoint onto a canvas
  */
-function drawForeheadKeypoint(keypoints, minConfidence, context) {
+function drawForeheadKeypoint(keypoints, minConfidence, context, radiusForeheadCircle) {
     let leftEye;
     let rightEye;
     let nose;
+    let x;
+    let y;
 
     for (let i = 0; i < keypoints.length; i++) {
 
@@ -68,15 +70,16 @@ function drawForeheadKeypoint(keypoints, minConfidence, context) {
     }
     
     if (leftEye.score > minConfidence && rightEye.score > minConfidence && nose.score > minConfidence) {
-        // x_midPoint = 0.5 * leftEye.position.x + 0.5 * rightEye.position.x
-        let x = leftEye.position.x + rightEye.position.x - nose.position.x
-        let y = leftEye.position.y + rightEye.position.y - nose.position.y
+        x = leftEye.position.x + rightEye.position.x - nose.position.x
+        y = leftEye.position.y + rightEye.position.y - nose.position.y
 
         x = videoWidth - x; // Bug fix with horizontal flip
         context.beginPath();
-        context.arc(x, y, 16, 0, 2 * Math.PI);
+        context.arc(x, y, radiusForeheadCircle, 0, 2 * Math.PI);
         context.fillStyle = "rgb(220,20,60, 0.4)";
         context.fill();
+
+        return {x, y}
     }
 }
 
