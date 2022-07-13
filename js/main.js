@@ -1,5 +1,5 @@
-const videoWidth = 800;
-const videoHeight = 600;
+const videoWidth = 600;
+const videoHeight = 450;
 const imageScaleFactor = 0.5;
 const flipHorizontal = true; // since images are being fed from a webcam
 const outputStride = 16;
@@ -8,14 +8,11 @@ const minPoseConfidence = 0.1;
 const radiusTarget = 50
 const radiusForeheadCircle = 16
 
-var xTargetCenter = Math.random() * videoWidth;
-var yTargetCenter = Math.random() * videoHeight;
+var xTargetCenter = Math.random() * (videoWidth - 20) + 10;
+var yTargetCenter = Math.random() * (videoHeight - 20) + 10;
 
 var score = 0
 var timeStart
-
-// const videoWidth = window.screen.width;
-// const videoHeight = window.screen.height;
 
 window.onload = function() {
     startScreen()
@@ -50,8 +47,8 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
         context.fillStyle = "#00ff00";
         context.fillText("Score: " + score, 15, 30);
 
-        // // Draw keypoints on canvas
-        // drawKeypoints(pose.keypoints, minPartConfidence, context);
+        // Draw keypoints on canvas
+        drawKeypoints(pose.keypoints, minPartConfidence, context);
     
         // draw skeleton on canvas
         //drawSkeleton(pose.keypoints, minPoseConfidence, context);
@@ -66,12 +63,6 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
                 // Update score
                 score = score + 1
 
-                // if (score === 1) {
-                //     cancelAnimationFrame(reqId);
-                //     console.log('test')
-                //     stopGame(canvas, context, video);
-                // }
-
                 // Generate new target coordinates
                 xTargetCenter = Math.random() * videoWidth;
                 yTargetCenter = Math.random() * videoHeight;
@@ -80,7 +71,7 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
 
         let reqId = requestAnimationFrame(poseDetectionFrame);
 
-        if (score === 1) {
+        if (score === 5) {
             cancelAnimationFrame(reqId);
             stopGame(canvas, context, video);
         }
@@ -106,8 +97,8 @@ async function startGame(canvas, context) {
       video = await loadVideo();
     } catch(e) {
       let info = document.getElementById('info');
-      info.textContent = "this browser does not support video capture, or this device does not have a camera";
-      info.style.display = 'block';
+      info.innerHTML = `<h5>This browser does not support video capture, or this device does not have a camera</h5>`;
+      info.style.display = 'flex';
       throw e;
     }
 
@@ -143,10 +134,9 @@ async function stopGame(canvas, context) {
     const image = await loadImage('./media/deloitte.jpeg')
 
     context.drawImage(image, 0, 0, videoWidth, videoHeight);
-    context.font = "30pt Calibri";
+    context.font = "20pt Calibri";
     context.fillStyle = "#00ff00";
-    context.fillText("Congrats you made it till the end!", 50, 50);
-    context.fillText("Your time is " + timeGame + " seconds", 50, 100);
+    context.fillText("Congrats you made it in " + timeGame + " seconds!", 100, 100);
 }
 
 async function startScreen(){
@@ -161,9 +151,9 @@ async function startScreen(){
     const image = await loadImage('./media/deloitte.jpeg')
 
     context.drawImage(image, 0, 0, videoWidth, videoHeight);
-    context.font = "40pt Calibri";
+    context.font = "30pt Calibri";
     context.fillStyle = "#00ff00";
-    context.fillText("Start Game!", 120, 120);
+    context.fillText("Start Game!", 100, 100);
 
     // Remove loading block and show game
     document.getElementById('main').style.display = 'block';

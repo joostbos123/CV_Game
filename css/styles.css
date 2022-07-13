@@ -9,16 +9,26 @@
     height: 80px;
 }
 
+#intro {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+#info {
+    justify-content: center;
+    margin: 30px;
+}
+
 #game {
     display: flex;
     justify-content: center;
 }
 
 #output {
-    height: 600px;
-    width: 800px;
-    margin-top: 3em;
-    margin-bottom: 3em;
+    height: 450px;
+    width: 600px;
     border-radius: 0.5em;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
@@ -27,6 +37,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-top: 50px;
     margin-left: 100px;
     margin-right: 100px;
 }
