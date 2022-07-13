@@ -77,13 +77,16 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
         }
     }
 
+    // Clear the canvas
+    context.clearRect(0, 0, videoWidth, videoHeight);
+
     poseDetectionFrame();
 
 }
 
 
 
-async function startGame(canvas, context) {
+async function startGame(canvas, context, net) {
     console.log('start game')
 
     // Play music sound
@@ -102,21 +105,12 @@ async function startGame(canvas, context) {
       throw e;
     }
 
-    // Load the TensorFlow.js model
-    const net = await posenet.load({
-        inputResolution: { width: videoWidth, height: videoHeight },
-        scale: imageScaleFactor,
-        })
-    console.log('model loaded')
-
-    // Clear the canvas
-    context.clearRect(0, 0, videoWidth, videoHeight);
+    console.log('video ready')
 
     // image of the game
     const image = await loadImage('./media/football.png')
 
     detectPoseInRealTime(canvas, context, video, net, image)
-
 }
 
 async function stopGame(canvas, context) {
@@ -147,10 +141,18 @@ async function startScreen(){
 
     var context = canvas.getContext('2d');
 
-    // Add starting image and text to canvas
+    // Add starting image to the canvas
     const image = await loadImage('./media/deloitte.jpeg')
-
     context.drawImage(image, 0, 0, videoWidth, videoHeight);
+
+    // Load the TensorFlow.js model
+    const net = await posenet.load({
+        inputResolution: { width: videoWidth, height: videoHeight },
+        scale: imageScaleFactor,
+        })
+    console.log('model loaded')
+
+    // Add starting text to the canvas
     context.font = "30pt Calibri";
     context.fillStyle = "#00ff00";
     context.fillText("Start Game!", 100, 100);
@@ -159,6 +161,8 @@ async function startScreen(){
     document.getElementById('main').style.display = 'block';
 
     canvas.addEventListener('click', function() {
-        startGame(canvas, context)
+        startGame(canvas, context, net)
     })
+
+    canvas.style.cursor = "pointer"
 }
