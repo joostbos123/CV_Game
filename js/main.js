@@ -1,5 +1,3 @@
-const videoWidth = 600;
-const videoHeight = 450;
 const imageScaleFactor = 0.5;
 const flipHorizontal = true; // since images are being fed from a webcam
 const outputStride = 16;
@@ -8,35 +6,47 @@ const minPoseConfidence = 0.1;
 const radiusTarget = 50
 const radiusForeheadCircle = 16
 
-var xTargetCenter = Math.random() * (videoWidth - 20) + 10;
-var yTargetCenter = Math.random() * (videoHeight - 20) + 10;
+const canvas = document.querySelector('canvas');
+const context = canvas.getContext('2d');
+const videoHeight = canvas.clientHeight
+const videoWidth = canvas.clientWidth
 
-var score = 0
-var timeStart
+let timeStart;
 
 window.onload = function() {
     startScreen()
 }
 
-async function detectPoseInRealTime(canvas, context, video, net, image) {
+async function detectPoseInRealTime(video, net, image) {
 
+    // Initialize score and time of the game
+    var score = 0;
     timeStart = Date.now();
+
+    // Make sure that the target doesn't get too close to the boundaries of the game
+    var xTargetCenter = Math.random() * (videoWidth - 40) + 20;
+    var yTargetCenter = Math.random() * (videoHeight - 40) + 20;
 
     async function poseDetectionFrame() {
     
+        // Perform pose estimation to get the coordinates of body parts
         pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
     
+        // Clear canvas
         context.clearRect(0, 0, videoWidth, videoHeight);
     
+        // Draw image from video camera on canvas
         context.save();
         context.scale(-1, 1);
         context.translate(-videoWidth, 0);
         context.drawImage(video, 0, 0, videoWidth, videoHeight);
         context.restore();
 
+        // Define the left corner coordinates of the target
         let xTargetCorner = xTargetCenter - radiusTarget;
         let yTargetCorner = yTargetCenter - radiusTarget;
 
+        // Draw the target image on canvas
         context.drawImage(image, xTargetCorner, yTargetCorner, radiusTarget*2, radiusTarget*2);
 
         // Draw forehead keypoint on canvas
@@ -56,24 +66,34 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
         // Check if the target is hit
         if (foreheadCoordinates !== undefined) {
 
+            // Calculate difference between the center of the users forehead and target
             let distCenters = Math.sqrt((xTargetCenter - foreheadCoordinates.x)**2 + (yTargetCenter - foreheadCoordinates.y)**2);
 
+            // Check if the target is hit
             if (distCenters < (radiusTarget + radiusForeheadCircle)) {
                 console.log('hit!')
                 // Update score
                 score = score + 1
 
-                // Generate new target coordinates
-                xTargetCenter = Math.random() * videoWidth;
-                yTargetCenter = Math.random() * videoHeight;
+                // Generate new target coordinates that are not too close to the previous ones
+                var xTargetCenterNew = xTargetCenter;
+                var yTargetCenterNew = yTargetCenter;
+                while (Math.sqrt((xTargetCenter - xTargetCenterNew)**2 + (yTargetCenter - yTargetCenterNew)**2) < 100) {
+                    xTargetCenterNew = Math.random() * (videoWidth - 40) + 20;
+                    yTargetCenterNew = Math.random() * (videoHeight - 40) + 20;
+                }
+                xTargetCenter = xTargetCenterNew
+                yTargetCenter = yTargetCenterNew
             }
         }
 
+        // Invoke the poseDetectionFrame function for each incoming image from the video camera
         let reqId = requestAnimationFrame(poseDetectionFrame);
 
+        // End game at a score of 5
         if (score === 5) {
             cancelAnimationFrame(reqId);
-            stopGame(canvas, context, video);
+            stopGame(video, net);
         }
     }
 
@@ -84,11 +104,8 @@ async function detectPoseInRealTime(canvas, context, video, net, image) {
 
 }
 
-
-
-async function startGame(canvas, context, net) {
+async function startGame(net) {
     console.log('start game')
-
     // Play music sound
     //var audio = new Audio('./media/James Hype - Ferrari (Instrumental).mp3');
     //audio.play();
@@ -110,10 +127,11 @@ async function startGame(canvas, context, net) {
     // image of the game
     const image = await loadImage('./media/football.png')
 
-    detectPoseInRealTime(canvas, context, video, net, image)
+    // Start function that performs the real-time video processing
+    detectPoseInRealTime(video, net, image)
 }
 
-async function stopGame(canvas, context) {
+async function stopGame(video, net) {
     // Stop video camera stream
     video.srcObject.getTracks().forEach(function(track) {
         track.stop();
@@ -131,15 +149,25 @@ async function stopGame(canvas, context) {
     context.font = "20pt Calibri";
     context.fillStyle = "#00ff00";
     context.fillText("Congrats you made it in " + timeGame + " seconds!", 100, 100);
+    context.fillText("Please click to start over", 100, 150);
+
+    // Add eventlistener that starts the game when user clicks and is removed after click
+    function startGameListener() {
+        startGame(net);
+        canvas.removeEventListener('click', startGameListener);
+        canvas.style.cursor = "auto";
+    }
+
+    canvas.addEventListener('click', startGameListener);
+    canvas.style.cursor = "pointer";
 }
+
 
 async function startScreen(){
 
-    var canvas = document.querySelector('canvas');
+    // Make sure that canvas has the correct size
     canvas.width  = videoWidth
     canvas.height = videoHeight
-
-    var context = canvas.getContext('2d');
 
     // Add starting image to the canvas
     const image = await loadImage('./media/deloitte.jpeg')
@@ -160,9 +188,13 @@ async function startScreen(){
     // Remove loading block and show game
     document.getElementById('main').style.display = 'block';
 
-    canvas.addEventListener('click', function() {
-        startGame(canvas, context, net)
-    })
+    // Add eventlistener that starts the game when user clicks and is removed after click
+    function startGameListener() {
+        startGame(net);
+        canvas.removeEventListener('click', startGameListener);
+        canvas.style.cursor = "auto";
+    }
 
-    canvas.style.cursor = "pointer"
+    canvas.addEventListener('click', startGameListener);
+    canvas.style.cursor = "pointer";
 }
